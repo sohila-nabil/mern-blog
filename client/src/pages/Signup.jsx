@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link,useNavigate } from "react-router-dom";
+import { useSelector,useDispatch } from "react-redux";
 import { url } from "../data";
 import { TextInput, Button, Label, Alert, Spinner } from "flowbite-react";
 const Signup = () => {
@@ -10,7 +11,9 @@ const Signup = () => {
     email: "",
     password: "",
   });
+  
   const navigate = useNavigate();
+  
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.id]: e.target.value.trim() });

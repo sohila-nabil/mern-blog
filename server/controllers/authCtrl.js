@@ -37,4 +37,24 @@ const signup = async (req, res, next) => {
   }
 };
 
-export { signup };
+const signin = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    if (!email || !password)
+      return next(errorHandler(400, "all fields are required"));
+    const user = await User.findOne({ email });
+    if (!user) return next(errorHandler(404, "invalid credentials"));
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return next(errorHandler(400, "invalid credentials"));
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const { password: userPassword, ...userInfo } = user._doc;
+    res.status(200).cookie("token", token, { httpOnly: true }).json({
+      success: true,
+      message: "user logged in successfully",
+      userInfo,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export { signup, signin };

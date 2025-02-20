@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { signinStart,signinSuccess,signinFail } from "../redux/user/userSlice";
 import { url } from "../data";
 import { TextInput, Button, Label, Alert, Spinner } from "flowbite-react";
 
 const Signin = () => {
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState({
     email: "",
     password: "",
   });
+  const { currentUser ,error,loading} = useSelector((state) => state.user);  
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,9 +19,9 @@ const Signin = () => {
   };
 
   const validateForm = () => {
-    const {  email, password } = userData;
-    if ( !email || !password) {
-      setError("All fields are required");
+    const { email, password } = userData;
+    if (!email || !password) {
+      dispatch(signinFail("All fields are required"));
       return false;
     }
     return true;
@@ -29,27 +31,25 @@ const Signin = () => {
     e.preventDefault();
     try {
       if (!validateForm()) return;
-      setError(null);
-      setLoading(true);
-      const response = await fetch(`${url}/api/auth/sign-up`, {
+      dispatch(signinStart());
+      const response = await fetch(`${url}/api/auth/sign-in`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(userData),
       });
       const data = await response.json();
       if (!data.success) {
-        setLoading(false);
-        return setError(data.message);
+        dispatch(signinFail(data.message));
+        return;
       }
-      setLoading(false);
-      setUserData({email: "", password: "" });
-      setError(null);
-      navigate("/sign-in");
+      setUserData({ email: "", password: "" });
+      dispatch(signinSuccess(data));
+      navigate("/");
     } catch (error) {
-      setLoading(false);
-      setError("An error occurred. Please try again.", error.message);
+      dispatch(signinFail(error.message));
     }
   };
 
