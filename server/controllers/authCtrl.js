@@ -47,14 +47,65 @@ const signin = async (req, res, next) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return next(errorHandler(400, "invalid credentials"));
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    const { password: userPassword, ...userInfo } = user._doc;
+    const { password: userPassword, ...data } = user._doc;
     res.status(200).cookie("token", token, { httpOnly: true }).json({
       success: true,
       message: "user logged in successfully",
-      userInfo,
+      data,
     });
   } catch (error) {
     next(error);
   }
 };
-export { signup, signin };
+
+const signWithGoogle = async (req, res, next) => {
+  const { name, email, photo } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password, ...data } = user._doc;
+      res
+        .cookie("token", token, { httpOnly: true })
+        .status(200)
+        .json({ success: true, message: "logged in successfully", data });
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcrypt.hashSync(generatedPassword, 10);
+      const randomName =
+        name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-4);
+      const newUser = new User({
+        username: randomName,
+        email,
+        password: hashedPassword,
+        profilePicture: {
+          public_id: "",
+          url: photo,
+        },
+      });
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const { password, ...data } = newUser._doc;
+      res
+        .cookie("token", token, { httpOnly: true })
+        .status(200)
+        .json({ success: true, message: "registered  successfully", data });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const signout = async (req, res, next) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { signup, signin,signWithGoogle, signout };

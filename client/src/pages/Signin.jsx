@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { signinStart,signinSuccess,signinFail } from "../redux/user/userSlice";
 import { url } from "../data";
 import { TextInput, Button, Label, Alert, Spinner } from "flowbite-react";
+import OAuth from "../components/OAuth";
 
 const Signin = () => {
   const [userData, setUserData] = useState({
@@ -105,6 +106,7 @@ const Signin = () => {
                 "Sign In"
               )}
             </Button>
+            <OAuth />
           </form>
           {error && (
             <Alert className="text-red-500 mt-3" color="failure">

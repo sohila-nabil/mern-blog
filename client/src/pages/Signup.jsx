@@ -3,6 +3,7 @@ import { Link,useNavigate } from "react-router-dom";
 import { useSelector,useDispatch } from "react-redux";
 import { url } from "../data";
 import { TextInput, Button, Label, Alert, Spinner } from "flowbite-react";
+import OAuth from "../components/OAuth";
 const Signup = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -116,6 +117,7 @@ const Signup = () => {
                 "Sign Up"
               )}
             </Button>
+            <OAuth />
           </form>
           {error && (
             <Alert className="text-red-500 mt-3" color="failure">
