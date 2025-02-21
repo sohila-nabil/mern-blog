@@ -99,6 +99,7 @@ const signWithGoogle = async (req, res, next) => {
   }
 };
 
+
 const signout = async (req, res, next) => {
   try {
     res.clearCookie("token");
