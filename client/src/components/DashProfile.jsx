@@ -1,22 +1,40 @@
-import { TextInput, Button } from "flowbite-react";
+import { TextInput, Button, Alert } from "flowbite-react";
 import React, { useState, useRef } from "react";
-import { useSelector } from "react-redux";
-
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { url } from "../data";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFail,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFail,
+} from "../redux/user/userSlice";
 const DashProfile = () => {
-  const { currentUser } = useSelector((state) => state.user);
-  const [image, setImage] = useState(
+  const { currentUser, error, loading } = useSelector((state) => state.user);
+  const [imagePreview, setImagePreview] = useState(
     currentUser.data.profilePicture.url || currentUser.data.profilePicture
   );
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [userData, setUserData] = useState({
+    username: currentUser.data.username,
+    email: currentUser.data.email,
+    password: "",
+  });
+  const [meg, setMsg] = useState("");
   const fileInput = useRef(null);
-
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleImagePrev = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       const img = URL.createObjectURL(file);
-      setImage(img);
+      setImagePreview(img);
       setUploading(true);
       setProgress(0);
       const interval = setInterval(() => {
@@ -32,13 +50,80 @@ const DashProfile = () => {
     }
   };
 
-  const handleSignout = () => {
-    // Implement signout logic here
+  const handleChange = (e) => {
+    setUserData({ ...userData, [e.target.id]: e.target.value });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateUserStart());
+      const formData = new FormData();
+      formData.append("name", userData.username);
+      formData.append("email", userData.email);
+      formData.append("password", userData.password);
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      const response = await fetch(
+        `${url}/api/user/update/${currentUser.data._id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      if (!data.success) {
+        console.log(data);
+        dispatch(updateUserFail(data.message));
+        return;
+      }
+      console.log(data);
+      dispatch(updateUserSuccess(data));
+      setMsg(data.message);
+    } catch (error) {
+      console.log(error);
+      dispatch(updateUserFail(error.message));
+    }
+  };
+
+  const handleSignout = async () => {
+    try {
+      const response = await fetch(`${url}/api/auth/signout`, {
+        method: "GET",
+        credentials: "include",
+      });
+    } catch (error) {}
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const response = await fetch(
+        `${url}/api/user/delete/${currentUser.data._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      if (!data.success) {
+        dispatch(deleteUserFail(data.message));
+        return;
+      }
+      dispatch(deleteUserSuccess());
+      navigate("/sign-in");
+    } catch (error) {
+      dispatch(deleteUserFail(error.message));
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full">
           <input
             type="file"
@@ -49,7 +134,7 @@ const DashProfile = () => {
             onChange={handleImagePrev}
           />
           <img
-            src={image}
+            src={imagePreview}
             onClick={() => fileInput.current.click()}
             className="rounded-full w-full h-full object-cover border-8 border-[lightgray]"
             alt="user"
@@ -93,20 +178,39 @@ const DashProfile = () => {
           id="username"
           placeholder="username"
           defaultValue={currentUser.data.username}
+          onChange={handleChange}
         />
         <TextInput
           type="email"
           id="email"
           placeholder="email"
           defaultValue={currentUser.data.email}
+          onChange={handleChange}
         />
-        <TextInput type="password" id="password" placeholder="password" />
+        <TextInput
+          type="password"
+          id="password"
+          placeholder="password"
+          onChange={handleChange}
+        />
         <Button type="submit" gradientDuoTone="purpleToBlue" outline>
           Update
         </Button>
       </form>
+      {meg && (
+        <Alert className="mt-4 text-center" color="success">
+          {meg}
+        </Alert>
+      )}
+      {error && (
+        <Alert className="mt-4 text-center" color="failure">
+          {error}
+        </Alert>
+      )}
       <div className="text-red-500 flex justify-between mt-5">
-        <span className="cursor-pointer">Delete Account</span>
+        <span onClick={handleDeleteUser} className="cursor-pointer">
+          Delete Account
+        </span>
         <span onClick={handleSignout} className="cursor-pointer">
           Sign Out
         </span>
