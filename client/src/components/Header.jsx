@@ -9,7 +9,6 @@ const Header = () => {
   const path = useLocation().pathname;
   const user = useSelector((state) => state.user.currentUser.data);
   const { theme } = useSelector((state) => state.theme);
-  console.log(theme);
   const dispatch = useDispatch();
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
