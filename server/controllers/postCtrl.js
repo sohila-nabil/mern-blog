@@ -109,5 +109,71 @@ const getposts = async (req, res, next) => {
   }
 };
 
+const updatePost = async (req, res, next) => {
+  const { id } = req.params;
+  const imageFile = req.files?.image;  
+  const data = { ...req.body };
 
-export { createPost,getposts };
+  // Remove _id from the update data, if it exists
+  if (data._id) {
+    delete data._id;
+  }
+  try {
+    if (!req.user.isAdmin)
+      return next(errorHandler(403, "You are not allowed to create a post"));
+    const post = await Post.findById(id);
+    if (req.user.id !== post.userId)
+      return next(errorHandler(403, "You are not allowed to create a post"));
+    if (imageFile) {
+      if (post.image.public_id) {
+        await cloudinary.uploader.destroy(post.image.public_id);
+      }
+      const cloudRes = await cloudinary.uploader.upload(imageFile.tempFilePath, {
+        folder: 'blog',
+      });
+      data.image = {
+        public_id: cloudRes.public_id,
+        url: cloudRes.secure_url,
+      };
+    }
+    if (data.title) {
+      // data.title = title;
+      data.slug = data.title
+        .split(" ")
+        .join("-")
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9-]/g, "");
+    }
+    const updatedPost = await Post.findByIdAndUpdate(id, data, { new: true });
+    res.status(200).json({ success: true, updatedPost });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+const deletePost = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (!req.user?.isAdmin)
+      return next(errorHandler(403, "You are not allowed to delete a post"));
+    const post = await Post.findById(id);
+    if (!post) return next(errorHandler(403, "post not exist"));
+    if (req.user.id !== post.userId)
+      return next(errorHandler(403, "You are not allowed to delete a post"));
+    if (post.image.public_id && post.image.public_id !== "") {
+      await cloudinary.uploader.destroy(post.image.public_id);
+    }
+    await post.deleteOne();
+    res
+      .status(200)
+      .json({ success: true, message: "Post Deleted successfully" });
+  } catch (error) {
+    next(error);
+    console.log(error);
+  }
+};
+
+
+
+export { createPost, getposts, deletePost,updatePost };
