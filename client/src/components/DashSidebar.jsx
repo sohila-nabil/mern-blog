@@ -18,7 +18,7 @@ const DashSidebar = ({ tab }) => {
     <Sidebar className="w-full md:w-56">
       <Sidebar.Items>
         <Sidebar.ItemGroup className="flex flex-col gap-1">
-          {currentUser && currentUser.isAdmin && (
+          {currentUser && currentUser.data.isAdmin && (
             <Link to="/dashboard?tab=dash">
               <Sidebar.Item
                 active={tab === "dash" || !tab}
@@ -33,14 +33,14 @@ const DashSidebar = ({ tab }) => {
             <Sidebar.Item
               active={tab === "profile"}
               icon={HiUser}
-              label={currentUser.isAdmin ? "Admin" : "User"}
+              label={currentUser.data.isAdmin ? "Admin" : "User"}
               labelColor="dark"
               as="div"
             >
               Profile
             </Sidebar.Item>
           </Link>
-          {currentUser.isAdmin && (
+          {currentUser.data.isAdmin && (
             <Link to="/dashboard?tab=posts">
               <Sidebar.Item
                 active={tab === "posts"}
@@ -51,7 +51,7 @@ const DashSidebar = ({ tab }) => {
               </Sidebar.Item>
             </Link>
           )}
-          {currentUser.isAdmin && (
+          {currentUser.data.isAdmin && (
             <>
               <Link to="/dashboard?tab=users">
                 <Sidebar.Item

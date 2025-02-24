@@ -2,11 +2,13 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import dbConnection from "./config/dbConnection.js";
-import authRouter from "./routes/authRout.js";
-import userRouter from "./routes/userRoute.js";
 import cookiesParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
 import fileUpload from "express-fileupload";
+import authRouter from "./routes/authRout.js";
+import userRouter from "./routes/userRoute.js";
+import postRouter from "./routes/postRoute.js";
+
 const app = express();
 dbConnection();
 
@@ -37,7 +39,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
-
+app.use("/api/post", postRouter);
 
 // error handler
 app.use((err, req, res, next) => {

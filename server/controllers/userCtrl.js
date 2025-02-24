@@ -7,7 +7,7 @@ import { v2 as cloudinary } from "cloudinary";
 const updateUser = async (req, res, next) => {
   const { id } = req.params;
   const { name, email, password } = req.body;
-  const image = req.files;  
+  const image = req.files;
   try {
     if (req.user.id !== id) {
       return next(errorHandler(403, "You are not allowed to update this user"));
@@ -23,7 +23,9 @@ const updateUser = async (req, res, next) => {
       if (user.profilePicture.public_id && user.profilePicture.public_id !== "")
         await cloudinary.uploader.destroy(user.profilePicture.public_id);
       const { tempFilePath } = image.image;
-      const result = await cloudinary.uploader.upload(tempFilePath);
+      const result = await cloudinary.uploader.upload(tempFilePath, {
+        folder: "blog",
+      });
       if (!result || result.error) {
         console.log(result.error);
         return next(errorHandler(500, "Image upload failed"));
@@ -45,11 +47,11 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-const deleteUser = async(req, res, next) => {
-  const {id} = req.params;
+const deleteUser = async (req, res, next) => {
+  const { id } = req.params;
   try {
     if (req.user.id !== id) {
-      return next(errorHandler(403, "You are not allowed to delete this user")); 
+      return next(errorHandler(403, "You are not allowed to delete this user"));
     }
     const user = await User.findById(id);
     if (!user) {
@@ -65,5 +67,5 @@ const deleteUser = async(req, res, next) => {
   } catch (error) {
     next(error);
   }
-}
-export { updateUser,deleteUser };
+};
+export { updateUser, deleteUser };
