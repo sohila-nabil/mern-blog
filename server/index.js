@@ -8,6 +8,7 @@ import fileUpload from "express-fileupload";
 import authRouter from "./routes/authRout.js";
 import userRouter from "./routes/userRoute.js";
 import postRouter from "./routes/postRoute.js";
+import commentRoute from "./routes/commentRoute.js";
 
 const app = express();
 dbConnection();
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/post", postRouter);
+app.use("/api/comment", commentRoute);
 
 // error handler
 app.use((err, req, res, next) => {
