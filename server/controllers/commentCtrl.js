@@ -41,11 +41,7 @@ export const likeOrDislikeComment = async (req, res, next) => {
   try {
     const comment = await Comment.findById(req.params.commentId);
     if (!comment) return next(errorHandler(400, "comment not exist"));
-    console.log(req.user.id);
-
     let user = await User.findById(req.user.id);
-    console.log(user);
-
     if (!user) return next(errorHandler(400, "you must register"));
     const userIndex = comment.likes.indexOf(user._id);
     if (userIndex === -1) {

@@ -6,7 +6,7 @@ import { Button, Textarea } from "flowbite-react";
 import { set } from "mongoose";
 import { url } from "../data";
 
-const Comment = ({ comment, onLike }) => {
+const Comment = ({ comment, onLike, onEdit, onDelete }) => {
   const [user, setUser] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -30,22 +30,24 @@ const Comment = ({ comment, onLike }) => {
 
   const handleEdit = () => {
     setIsEditing(true);
-    setEditedContent(comment.content);
+    setEditedContent(comment.comment);
   };
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`/api/comment/editComment/${comment._id}`, {
+      const res = await fetch(`${url}/api/comment/update/${comment._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          content: editedContent,
+          comment: editedContent,
         }),
+        credentials: "include",
       });
       if (res.ok) {
         setIsEditing(false);
+        console.log("commentcommentcomment", comment);
         onEdit(comment, editedContent);
       }
     } catch (error) {
@@ -119,7 +121,8 @@ const Comment = ({ comment, onLike }) => {
                     (comment.numberOfLikes === 1 ? "like" : "likes")}
               </p>
               {currentUser &&
-                (currentUser._id === comment.userId || currentUser.isAdmin) && (
+                (currentUser.data._id === comment.userId ||
+                  currentUser.data.isAdmin) && (
                   <>
                     <button
                       type="button"
