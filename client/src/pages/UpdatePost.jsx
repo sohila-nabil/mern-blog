@@ -37,7 +37,7 @@ const UpdatePost = () => {
           title: fetchedPost.title || "",
           category: fetchedPost.category || "",
           content: fetchedPost.content || "",
-          image:imageFile
+          image: imageFile,
         });
         setImage(fetchedPost.image.url);
       }
@@ -137,9 +137,7 @@ const UpdatePost = () => {
         <div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3">
           <FileInput type="file" accept="image/*" onChange={handlePreview} />
         </div>
-        {image && !loading && (
-          <img src={ postData?.image?.url || image} />
-        )}
+        {image && !loading && <img src={postData?.image?.url || image} />}
         <ReactQuill
           theme="snow"
           placeholder="Write something amazing..."
