@@ -9,6 +9,7 @@ import "react-quill-new/dist/quill.snow.css";
 const UpdatePost = () => {
   const { id } = useParams();
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState(null);
   const { data } = useSelector((state) => state.user.currentUser);
   const [postData, setPostData] = useState({
@@ -36,9 +37,9 @@ const UpdatePost = () => {
           title: fetchedPost.title || "",
           category: fetchedPost.category || "",
           content: fetchedPost.content || "",
-          image: fetchedPost.image?.url,
+          image:imageFile
         });
-        setImage(fetchedPost.image?.url);
+        setImage(fetchedPost.image.url);
       }
     } catch (error) {
       console.error("Error fetching post:", error);
@@ -59,12 +60,20 @@ const UpdatePost = () => {
     setPostData((prevData) => ({ ...prevData, [id]: value }));
   };
 
+  // const handlePreview = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     setPostData((prevData) => ({ ...prevData, image: file }));
+  //     const img = URL.createObjectURL(file);
+  //     setImage(img);
+  //   }
+  // };
+
   const handlePreview = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setPostData((prevData) => ({ ...prevData, image: file }));
-      const img = URL.createObjectURL(file);
-      setImage(img);
+      setImage(URL.createObjectURL(file)); // Show preview
+      setImageFile(file);
     }
   };
 
@@ -75,6 +84,7 @@ const UpdatePost = () => {
       Object.keys(postData).forEach((key) => {
         formData.append(key, postData[key]);
       });
+      // formData.append("image", imageFile);
       const response = await fetch(`${url}/api/post/update/${id}`, {
         method: "PUT",
         body: formData,
@@ -127,12 +137,8 @@ const UpdatePost = () => {
         <div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3">
           <FileInput type="file" accept="image/*" onChange={handlePreview} />
         </div>
-        {image && (
-          <img
-            src={image}
-            alt="preview"
-            className="w-full h-72 object-cover rounded-lg"
-          />
+        {image && !loading && (
+          <img src={ postData?.image?.url || image} />
         )}
         <ReactQuill
           theme="snow"

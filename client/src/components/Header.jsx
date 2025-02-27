@@ -1,20 +1,55 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Navbar, TextInput, Button, Dropdown, Avatar } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { toggleTheme } from "../redux/theme/themeSlice";
+import { url } from "../data";
+import { signoutSuccess } from "../redux/user/userSlice";
 const Header = () => {
   const path = useLocation().pathname;
+  const location = useLocation();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.user.currentUser.data);
+  const [searchTerm, setSearchTerm] = useState("");
   const { theme } = useSelector((state) => state.theme);
+
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTermFromUrl = urlParams.get("searchTerm");
+    if (searchTermFromUrl) {
+      setSearchTerm(searchTermFromUrl);
+    }
+  }, [location.search]);
+
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
   };
-  const handleSignout = () => {
-    // signout logic
+  const handleSignout = async () => {
+      try {
+        const response = await fetch(`${url}/api/auth/sign-out`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (!data.success) {
+          return;
+        }
+        dispatch(signoutSuccess());
+        navigate("/sign-in");
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("searchTerm", searchTerm);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
   };
   return (
     <Navbar className="border-p-2">
@@ -28,12 +63,14 @@ const Header = () => {
         Blog
       </Link>
 
-      <form>
+      <form onSubmit={handleSubmit}>
         <TextInput
           type="text"
           placeholder="Search..."
           className="hidden lg:inline"
           rightIcon={AiOutlineSearch}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </form>
       <Button className="w-12 h-10 lg:hidden" pill color="gray">
